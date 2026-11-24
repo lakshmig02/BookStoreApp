@@ -1,0 +1,108 @@
+@if (errorMessage(); as message) {
+  <p-message severity="error" styleClass="mb-4" icon="pi pi-exclamation-triangle">
+    <div class="flex w-full flex-wrap items-center justify-between gap-3">
+      <span>Couldn't load books. {{ message }}</span>
+      <p-button label="Retry" icon="pi pi-refresh" size="small" severity="danger" [outlined]="true" (onClick)="store.reload()" />
+    </div>
+  </p-message>
+}
+
+<div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+  <p-table
+    [value]="store.books()"
+    dataKey="id"
+    [lazy]="true"
+    (onLazyLoad)="onLazyLoad($event)"
+    [loading]="store.status() === 'loading'"
+    [paginator]="true"
+    [first]="first()"
+    [rows]="store.query().pageSize"
+    [totalRecords]="store.totalCount()"
+    [rowsPerPageOptions]="rowsPerPageOptions"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="{first}–{last} of {totalRecords}"
+    [sortField]="store.query().sort.field"
+    [sortOrder]="sortOrder()"
+    [rowHover]="true"
+    [scrollable]="true"
+    [tableStyle]="{ 'min-width': '56rem' }"
+  >
+    <ng-template #header>
+      <tr>
+        <th class="w-16"><span class="sr-only">Cover</span></th>
+        <th pSortableColumn="title">Title <p-sortIcon field="title" /></th>
+        <th pSortableColumn="author">Author <p-sortIcon field="author" /></th>
+        <th pSortableColumn="publishedYear" class="w-28">Year <p-sortIcon field="publishedYear" /></th>
+        <th pSortableColumn="genre" class="w-36">Genre <p-sortIcon field="genre" /></th>
+        <th pSortableColumn="price" class="w-28 text-right">Price <p-sortIcon field="price" /></th>
+        <th pSortableColumn="stock" class="w-28">Stock <p-sortIcon field="stock" /></th>
+        <th class="w-28"><span class="sr-only">Actions</span></th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-book>
+      <tr>
+        <td><app-book-cover [url]="book.coverUrl" [title]="book.title" /></td>
+        <td>
+          <div class="font-medium text-slate-900">{{ book.title }}</div>
+          @if (book.isbn) {
+            <div class="text-xs text-slate-500">ISBN {{ book.isbn }}</div>
+          }
+        </td>
+        <td class="text-slate-700">{{ book.author }}</td>
+        <td class="text-slate-700">{{ book.publishedYear ?? '—' }}</td>
+        <td><p-tag [value]="book.genre | genreLabel" severity="secondary" /></td>
+        <td class="text-right font-medium tabular-nums">{{ book.price | currency: 'USD' }}</td>
+        <td>
+          <p-tag
+            [value]="book.stock === 0 ? 'Out of stock' : book.stock.toString()"
+            [severity]="stockSeverity(book.stock)"
+            [rounded]="true"
+          />
+        </td>
+        <td>
+          <div class="flex justify-end gap-1">
+            <p-button
+              icon="pi pi-pencil"
+              [rounded]="true"
+              [text]="true"
+              severity="secondary"
+              pTooltip="Edit"
+              tooltipPosition="top"
+              [ariaLabel]="'Edit ' + book.title"
+              (onClick)="edit.emit(book)"
+            />
+            <p-button
+              icon="pi pi-trash"
+              [rounded]="true"
+              [text]="true"
+              severity="danger"
+              pTooltip="Delete"
+              tooltipPosition="top"
+              [ariaLabel]="'Delete ' + book.title"
+              (onClick)="delete.emit(book)"
+            />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="8">
+          @if (store.status() === 'error') {
+            <div class="py-12 text-center text-slate-500">Books are unavailable right now.</div>
+          } @else if (store.isEmpty()) {
+            <div class="flex flex-col items-center gap-3 py-12 text-center">
+              <i class="pi pi-inbox text-4xl text-slate-300"></i>
+              <p class="text-slate-600">{{ emptyMessage() }}</p>
+              <p-button label="Add a book" icon="pi pi-plus" [outlined]="true" (onClick)="add.emit()" />
+            </div>
+          } @else {
+            <div class="py-12 text-center text-slate-400">Loading books…</div>
+          }
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

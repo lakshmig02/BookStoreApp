@@ -1,0 +1,74 @@
+@let f = form();
+<div [formGroup]="f" class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+  <div class="flex flex-col gap-1.5 sm:col-span-3">
+    <label [for]="idPrefix() + '-genre'" class="text-sm font-medium">Genre <span class="text-red-500">*</span></label>
+    <p-select
+      [inputId]="idPrefix() + '-genre'"
+      formControlName="genre"
+      [options]="genreOptions"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Choose a genre"
+      appendTo="body"
+      [invalid]="!!errorFor(f.controls.genre)"
+      class="w-full"
+    />
+    @if (errorFor(f.controls.genre); as message) {
+      <p-message severity="error" size="small" variant="simple">{{ message }}</p-message>
+    }
+  </div>
+
+  <div class="flex flex-col gap-1.5 sm:col-span-2">
+    <label [for]="idPrefix() + '-price'" class="text-sm font-medium">Price <span class="text-red-500">*</span></label>
+    <p-inputnumber
+      [inputId]="idPrefix() + '-price'"
+      formControlName="price"
+      mode="currency"
+      currency="USD"
+      locale="en-US"
+      [min]="0"
+      [max]="priceMax"
+      [invalid]="!!errorFor(f.controls.price)"
+      class="w-full"
+      inputStyleClass="w-full"
+    />
+    @if (errorFor(f.controls.price); as message) {
+      <p-message severity="error" size="small" variant="simple">{{ message }}</p-message>
+    }
+  </div>
+
+  <div class="flex flex-col gap-1.5">
+    <label [for]="idPrefix() + '-stock'" class="text-sm font-medium">Stock</label>
+    <p-inputnumber
+      [inputId]="idPrefix() + '-stock'"
+      formControlName="stock"
+      [min]="0"
+      [showButtons]="true"
+      [useGrouping]="false"
+      [invalid]="!!errorFor(f.controls.stock)"
+      class="w-full"
+      inputStyleClass="w-full"
+    />
+    @if (errorFor(f.controls.stock); as message) {
+      <p-message severity="error" size="small" variant="simple">{{ message }}</p-message>
+    }
+  </div>
+
+  <div class="flex flex-col gap-1.5 sm:col-span-3">
+    <label [for]="idPrefix() + '-description'" class="text-sm font-medium">
+      Description <span class="font-normal text-slate-500">(optional)</span>
+    </label>
+    <textarea
+      pTextarea
+      [id]="idPrefix() + '-description'"
+      formControlName="description"
+      rows="3"
+      [maxlength]="descriptionMax"
+      [invalid]="!!errorFor(f.controls.description)"
+      class="w-full"
+    ></textarea>
+    @if (errorFor(f.controls.description); as message) {
+      <p-message severity="error" size="small" variant="simple">{{ message }}</p-message>
+    }
+  </div>
+</div>

@@ -1,0 +1,37 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [closable]="!saving()"
+  header="Edit store details"
+  [style]="{ width: '40rem' }"
+  [breakpoints]="{ '640px': '95vw' }"
+  (onHide)="closed.emit()"
+>
+  @if (book(); as book) {
+    <div class="mb-5 flex items-start gap-4">
+      <app-book-cover [url]="book.coverUrl" [title]="book.title" size="md" />
+      <div class="min-w-0">
+        <div class="font-semibold">{{ book.title }}</div>
+        <div class="text-sm text-slate-600">{{ book.author }}</div>
+        <div class="mt-1 text-xs text-slate-500">
+          {{ book.publishedYear ?? 'Year unknown' }} · {{ book.isbn ? 'ISBN ' + book.isbn : 'No ISBN' }}
+        </div>
+      </div>
+    </div>
+
+    <app-store-details-fields [form]="form" idPrefix="edit" />
+
+    @if (saveError(); as message) {
+      <p-message severity="error" styleClass="mt-4" icon="pi pi-exclamation-triangle">{{ message }}</p-message>
+    }
+  }
+
+  <ng-template #footer>
+    <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="visible.set(false)" [disabled]="saving()" />
+    @if (book(); as book) {
+      <p-button label="Save changes" icon="pi pi-check" [loading]="saving()" (onClick)="save(book)" />
+    }
+  </ng-template>
+</p-dialog>

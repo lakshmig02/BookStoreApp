@@ -1,0 +1,140 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="!saving()"
+  [closable]="!saving()"
+  [header]="step() === 'search' ? 'Add a book · Find it in Open Library' : 'Add a book · Store details'"
+  [style]="{ width: '44rem' }"
+  [breakpoints]="{ '640px': '95vw' }"
+  (onHide)="onHide()"
+>
+  @if (step() === 'search') {
+    <form class="flex gap-2" (ngSubmit)="runSearch()">
+      <p-iconfield class="flex-1">
+        <p-inputicon class="pi pi-search" />
+        <input
+          pInputText
+          type="search"
+          name="term"
+          class="w-full"
+          placeholder="Title, author or ISBN"
+          aria-label="Search Open Library"
+          autocomplete="off"
+          [ngModel]="term()"
+          (ngModelChange)="term.set($event)"
+          autofocus
+        />
+      </p-iconfield>
+      <p-button
+        type="submit"
+        label="Search"
+        [loading]="search.status() === 'searching'"
+        [disabled]="term().trim().length < 2"
+      />
+    </form>
+
+    <div class="mt-4 min-h-72">
+      @switch (search.status()) {
+        @case ('idle') {
+          <div class="flex flex-col items-center gap-2 py-12 text-center text-slate-500">
+            <i class="pi pi-globe text-3xl text-slate-300"></i>
+            <p>Search the Open Library catalog, then pick a book to add to the store.</p>
+          </div>
+        }
+        @case ('searching') {
+          <div class="flex flex-col gap-3" aria-busy="true" aria-label="Searching">
+            @for (row of skeletonRows; track row) {
+              <div class="flex items-center gap-3">
+                <p-skeleton width="2.5rem" height="3.5rem" />
+                <div class="flex flex-1 flex-col gap-2">
+                  <p-skeleton width="60%" />
+                  <p-skeleton width="35%" />
+                </div>
+              </div>
+            }
+          </div>
+        }
+        @case ('error') {
+          <p-message severity="error" icon="pi pi-exclamation-triangle">
+            <div class="flex w-full flex-wrap items-center justify-between gap-3">
+              <span>{{ searchErrorMessage() }}</span>
+              <p-button label="Retry" icon="pi pi-refresh" size="small" severity="danger" [outlined]="true" (onClick)="search.retry()" />
+            </div>
+          </p-message>
+        }
+        @case ('done') {
+          @if (search.noResults()) {
+            <div class="flex flex-col items-center gap-2 py-12 text-center text-slate-500">
+              <i class="pi pi-search-minus text-3xl text-slate-300"></i>
+              <p>No books found for “{{ search.term() }}”. Try a different title, author or ISBN.</p>
+            </div>
+          } @else {
+            <p class="mb-2 text-sm text-slate-500">
+              Showing {{ search.results().length }} of {{ search.totalCount() }} matches. Pick one to continue.
+            </p>
+            <p-listbox
+              [options]="search.results()"
+              optionLabel="title"
+              optionDisabled="alreadyInStore"
+              dataKey="key"
+              [ngModel]="selected()"
+              (ngModelChange)="choose($event)"
+              scrollHeight="20rem"
+              ariaLabel="Search results"
+              class="w-full"
+            >
+              <ng-template #item let-book>
+                <div class="flex w-full items-center gap-3">
+                  <app-book-cover [url]="book.coverUrl" [title]="book.title" />
+                  <div class="min-w-0 flex-1">
+                    <div class="truncate font-medium">{{ book.title }}</div>
+                    <div class="truncate text-sm text-slate-500">
+                      {{ book.author }}@if (book.publishedYear) { · {{ book.publishedYear }}}
+                    </div>
+                    @if (book.isbn) {
+                      <div class="text-xs text-slate-400">ISBN {{ book.isbn }}</div>
+                    }
+                  </div>
+                  @if (book.alreadyInStore) {
+                    <p-tag value="In store" severity="secondary" />
+                  } @else {
+                    <i class="pi pi-angle-right text-slate-400"></i>
+                  }
+                </div>
+              </ng-template>
+            </p-listbox>
+          }
+        }
+      }
+    </div>
+  } @else {
+    @if (selected(); as book) {
+      <div class="mb-5 flex items-start gap-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <app-book-cover [url]="book.coverUrl" [title]="book.title" size="md" />
+        <div class="min-w-0 flex-1">
+          <div class="font-semibold">{{ book.title }}</div>
+          <div class="text-sm text-slate-600">{{ book.author }}</div>
+          <div class="mt-1 text-xs text-slate-500">
+            {{ book.publishedYear ?? 'Year unknown' }} · {{ book.isbn ? 'ISBN ' + book.isbn : 'No ISBN' }}
+          </div>
+          <div class="mt-1 text-xs text-slate-400">From Open Library · {{ book.key }}</div>
+        </div>
+        <p-button label="Change" icon="pi pi-arrow-left" size="small" [text]="true" (onClick)="backToResults()" [disabled]="saving()" />
+      </div>
+
+      <app-store-details-fields [form]="form" idPrefix="add" />
+
+      @if (saveError(); as message) {
+        <p-message severity="error" styleClass="mt-4" icon="pi pi-exclamation-triangle">{{ message }}</p-message>
+      }
+    }
+  }
+
+  <ng-template #footer>
+    <p-button label="Cancel" severity="secondary" [text]="true" (onClick)="close()" [disabled]="saving()" />
+    @if (step() === 'details') {
+      <p-button label="Add to store" icon="pi pi-check" [loading]="saving()" (onClick)="save()" />
+    }
+  </ng-template>
+</p-dialog>

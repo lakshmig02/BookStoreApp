@@ -1,0 +1,14 @@
+# .NET build output
+**/bin/
+**/obj/
+.vs/
+TestResults/
+
+# Frontend dependencies and generated output
+**/node_modules/
+**/.angular/
+
+# Local database files
+*.db
+*.db-shm
+*.db-wal

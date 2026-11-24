@@ -1,0 +1,18 @@
+/*
+ * Cascade layer order: PrimeNG's theme sits between Tailwind's base and utilities, so
+ * Tailwind resets don't clobber components while utility classes can still override them.
+ */
+@layer theme, base, primeng, components, utilities;
+
+@import 'tailwindcss';
+@import 'primeicons/primeicons.css';
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-slate-50 text-slate-800 antialiased;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+}

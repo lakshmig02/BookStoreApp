@@ -1,0 +1,22 @@
+<main class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6">
+  <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <h2 class="text-2xl font-semibold text-slate-900">{{ heading() }}</h2>
+      <p class="text-sm text-slate-500">
+        @if (bookList.status() === 'loaded') {
+          {{ bookList.totalCount() }} {{ bookList.totalCount() === 1 ? 'title' : 'titles' }} in the store
+        } @else {
+          &nbsp;
+        }
+      </p>
+    </div>
+    <p-button label="Add book" icon="pi pi-plus" (onClick)="addOpen.set(true)" />
+  </div>
+
+  <app-book-grid (add)="addOpen.set(true)" (edit)="editing.set($event)" (delete)="confirmDelete($event)" />
+</main>
+
+<app-add-book-dialog [(visible)]="addOpen" (added)="onAdded($event)" />
+<app-edit-book-dialog [book]="editing()" (closed)="editing.set(null)" (saved)="onSaved($event)" />
+<p-toast position="bottom-right" />
+<p-confirmdialog [style]="{ width: '28rem' }" [breakpoints]="{ '640px': '95vw' }" />
